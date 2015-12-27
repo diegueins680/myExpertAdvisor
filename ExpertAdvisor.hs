@@ -82,6 +82,9 @@ getSideLength x y = y - x
 getAverage :: Float -> Float -> Float -> Float -> Float
 getAverage previous current diminishingFactor smoothingFactor = (previous * diminishingFactor + current * smoothingFactor) / (diminishingFactor + smoothingFactor) 
 
+foreign export stdcall getAverage :: Float -> Float -> Float -> Float -> Float
+
+
 ghost :: Float -> Float -> Float -> Float -> Float
 ghost current previous diminishingFactor smoothingFactor = 2 * current - getAverage previous current diminishingFactor smoothingFactor
 
