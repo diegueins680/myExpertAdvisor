@@ -1,3 +1,5 @@
+{-# LANGUAGE ForeignFunctionInterface #-}
+
 module Main where
 
 import Data.Time.Clock.POSIX as TP
@@ -28,8 +30,10 @@ import Data.Time.Clock.POSIX as TP
 
 data Price = Price Float deriving (Show)
 
-data Point = Point { time :: TP.POSIXTime
-                     , price :: Price
+-- data Magnitud = Either Price Float | POSIXTime  deriving (Show)
+
+data Point = Point { time :: Float
+                     , price :: Float
                      } deriving (Show)
 
 data Operation = Buy | CloseBuy | Sell | CloseSell | Stay deriving (Show)
@@ -38,29 +42,42 @@ data Segment = Segment { point0 :: Point
                        , point1 :: Point
                        } deriving (Show)
 
--- buy :: Buy
--- buy = 0
+factorTime :: Float
+factorTime = 1
 
--- closeBuy :: CloseBuy
--- closeBuy = 1
+factorPrice :: Float
+factorPrice = 1
 
--- sell :: Sell
--- sell = 2
+timeDelta :: Point -> Point -> Float
+timeDelta pointA pointB = time pointB - time pointA
 
--- closeSell :: CloseSell
--- closeSell = 3
+priceDelta :: Point -> Point -> Float
+priceDelta pointA pointB = price pointB - price pointA
 
--- stay :: Stay
--- stay = 4
+getAngleRad :: Point -> Point -> Float
+getAngleRad pointA pointB = atan((priceDelta pointA pointB) /(timeDelta pointA pointB))
 
-getAngle :: Segment -> Segment -> Float
-getAngle segment1 segment2 = undefined
+getAngleDeg :: Point -> Point -> Float
+getAngleDeg pointA pointB = radToDeg (getAngleRad pointA pointB)
+
+radToDeg :: Float -> Float
+radToDeg rads = rads * 360 / (2 * pi)
 
 getOperationType :: [Point] -> Operation
 getOperationType points = Buy
 
 getSegmentLength :: Point -> Point -> Float
-getSegmentLength = undefined
+getSegmentLength a b = sqrt (((getSideLength (factorTime * time a) (factorTime * time b))^2 +
+                            (getSideLength (factorPrice * price a) (factorPrice * price b)^2)))
+
+getSideLength :: Float -> Float -> Float
+getSideLength x y = y - x
+
+-- getMagnitudByFactor :: Float -> Float -> Float
+-- getMagnitudByFactor magnitud = case magnitud of
+                              -- POSIXTime -> magnitud * factorTime
+                              -- Price -> magnitud * factorPrice
+                              -- _ -> magnitud * factorTime
 
 getAverage :: Float -> Float -> Float -> Float -> Float
 getAverage previous current diminishingFactor smoothingFactor = (previous * diminishingFactor + current * smoothingFactor) / (diminishingFactor + smoothingFactor) 
@@ -71,5 +88,4 @@ ghost current previous diminishingFactor smoothingFactor = 2 * current - getAver
 
 main :: IO()
 main = do
-  putStrLn $ show (getOperationType [Point {time=0, price=Price 1}, Point {time=4, price=Price 2}])
-
+  putStrLn $ show (getOperationType [Point {time=0, price=1}, Point {time=4, price=2}])
